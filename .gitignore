@@ -4,3 +4,4 @@ venv
 .env.local
 .env
 devtools
+dataset_generator/chess_dataset

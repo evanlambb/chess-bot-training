@@ -72,7 +72,7 @@ def inspect_dataset(npz_path: str, num_samples: int = 5, show_boards: bool = Tru
     game_ids = data.get('game_ids', None)
     
     # Overall statistics
-    print(f"\n📊 Dataset Statistics:")
+    print(f"\n[Dataset Statistics]")
     print(f"  Total positions: {len(boards):,}")
     print(f"  Board shape: {boards.shape}")
     print(f"  Policy indices shape: {policy_indices.shape}")
@@ -85,7 +85,7 @@ def inspect_dataset(npz_path: str, num_samples: int = 5, show_boards: bool = Tru
         print(f"  Avg positions per game: {avg_positions_per_game:.1f}")
     
     # Value statistics
-    print(f"\n📈 Value Distribution:")
+    print(f"\n[Value Distribution]")
     print(f"  Mean: {values.mean():.4f}")
     print(f"  Std:  {values.std():.4f}")
     print(f"  Min:  {values.min():.4f}")
@@ -96,11 +96,11 @@ def inspect_dataset(npz_path: str, num_samples: int = 5, show_boards: bool = Tru
     print(f"\n  Value histogram:")
     hist, bins = np.histogram(values, bins=10)
     for i in range(len(hist)):
-        bar = '█' * int(hist[i] / hist.max() * 50)
+        bar = '#' * int(hist[i] / hist.max() * 50)
         print(f"    [{bins[i]:5.2f}, {bins[i+1]:5.2f}): {bar} {hist[i]:,}")
     
     # Policy statistics
-    print(f"\n🎯 Policy Distribution:")
+    print(f"\n[Policy Distribution]")
     unique_moves, counts = np.unique(policy_indices, return_counts=True)
     print(f"  Unique moves seen: {len(unique_moves):,} (out of 4096 possible)")
     print(f"  Most common move indices:")
@@ -113,7 +113,7 @@ def inspect_dataset(npz_path: str, num_samples: int = 5, show_boards: bool = Tru
         print(f"    {chess.square_name(from_sq)}{chess.square_name(to_sq)}: {count:,} times")
     
     # Sample positions
-    print(f"\n🔍 Random Sample Positions:")
+    print(f"\n[Random Sample Positions]")
     sample_indices = np.random.choice(len(boards), min(num_samples, len(boards)), replace=False)
     
     for i, idx in enumerate(sample_indices):
@@ -147,7 +147,7 @@ def inspect_dataset(npz_path: str, num_samples: int = 5, show_boards: bool = Tru
 
 def compare_datasets(npz_paths: list):
     """Compare statistics across multiple datasets."""
-    print("\n📊 Comparing Datasets")
+    print("\n[Comparing Datasets]")
     print("=" * 80)
     
     stats = []
@@ -174,7 +174,7 @@ def load_generation_stats(stats_json_path: str):
     with open(stats_json_path, 'r') as f:
         stats = json.load(f)
     
-    print("\n📋 Generation Statistics")
+    print("\n[Generation Statistics]")
     print("=" * 80)
     for key, value in stats.items():
         print(f"  {key}: {value}")

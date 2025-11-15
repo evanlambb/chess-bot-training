@@ -15,7 +15,7 @@ def quick_test_config() -> DatasetConfig:
     ~5 minutes on single CPU.
     """
     return DatasetConfig(
-        stockfish_path="stockfish",  # UPDATE THIS PATH!
+        stockfish_path=r"C:\Users\evanl\stockfish\stockfish-windows-x86-64-avx2.exe",
         threads=1,
         hash_mb=128,
         play_depth=8,
@@ -39,12 +39,12 @@ def small_dataset_config() -> DatasetConfig:
     ~30 min on single CPU, ~5 min with 8 workers.
     """
     return DatasetConfig(
-        stockfish_path="stockfish",  # UPDATE THIS PATH!
+        stockfish_path=r"C:\Users\evanl\stockfish\stockfish-windows-x86-64-avx2.exe",
         threads=1,
         hash_mb=256,
         play_depth=10,
         label_depth=12,
-        num_games=1000,
+        num_games=30,
         max_moves=100,
         opening_variety=True,
         opening_moves=4,
@@ -63,7 +63,7 @@ def medium_dataset_config() -> DatasetConfig:
     ~5 hours on single CPU, ~40 min with 8 workers.
     """
     return DatasetConfig(
-        stockfish_path="stockfish",  # UPDATE THIS PATH!
+        stockfish_path=r"C:\Users\evanl\stockfish\stockfish-windows-x86-64-avx2.exe",
         threads=1,
         hash_mb=256,
         play_depth=10,
@@ -88,7 +88,7 @@ def large_dataset_config() -> DatasetConfig:
     ~6-8 hours with 16 workers.
     """
     return DatasetConfig(
-        stockfish_path="stockfish",  # UPDATE THIS PATH!
+        stockfish_path=r"C:\Users\evanl\stockfish\stockfish-windows-x86-64-avx2.exe",
         threads=1,
         hash_mb=512,
         play_depth=10,
@@ -112,7 +112,7 @@ def time_based_config() -> DatasetConfig:
     More consistent across different hardware.
     """
     return DatasetConfig(
-        stockfish_path="stockfish",  # UPDATE THIS PATH!
+        stockfish_path=r"C:\Users\evanl\stockfish\stockfish-windows-x86-64-avx2.exe",
         threads=1,
         hash_mb=256,
         play_time_ms=10,    # 10ms per move during play
@@ -136,7 +136,7 @@ def chesshacks_config() -> DatasetConfig:
     Generates enough data quickly while maintaining quality.
     """
     return DatasetConfig(
-        stockfish_path="stockfish",  # UPDATE THIS PATH!
+        stockfish_path=r"C:\Users\evanl\stockfish\stockfish-windows-x86-64-avx2.exe",
         threads=1,
         hash_mb=256,
         play_depth=8,       # Faster play
@@ -160,12 +160,12 @@ def balanced_config() -> DatasetConfig:
     Good default for most use cases.
     """
     return DatasetConfig(
-        stockfish_path="stockfish",  # UPDATE THIS PATH!
+        stockfish_path=r"C:\Users\evanl\stockfish\stockfish-windows-x86-64-avx2.exe",
         threads=1,
         hash_mb=256,
         play_depth=10,
         label_depth=12,
-        num_games=2000,
+        num_games=300,
         max_moves=100,
         opening_variety=True,
         opening_moves=4,
@@ -184,12 +184,8 @@ if __name__ == "__main__":
     # Choose a config
     config = balanced_config()
     
-    # IMPORTANT: Update Stockfish path for your system!
-    # Windows example:
-    # config.stockfish_path = r"C:\stockfish\stockfish.exe"
-    # 
-    # Linux/Mac example:
-    # config.stockfish_path = "/usr/local/bin/stockfish"
+    # Stockfish path already configured!
+    # Using: C:\Users\evanl\stockfish\stockfish-windows-x86-64-avx2.exe
     
     # Generate dataset
     print("Starting dataset generation with config:")
