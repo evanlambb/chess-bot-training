@@ -24,7 +24,6 @@ node_modules/
 dataset_generator/chess_dataset/
 dataset_generator/chess_dataset_*/
 dataset_generator/*_dataset_*/
-*.npz
 !dataset_generator/**/dataset_final.npz  # Keep final datasets under 50MB
 
 # IDE
