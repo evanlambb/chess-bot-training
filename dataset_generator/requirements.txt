@@ -1,0 +1,19 @@
+# Chess dataset generation and training requirements
+
+# Core chess library
+chess==1.10.0
+
+# Data processing
+numpy>=1.24.0
+
+# Deep learning (choose one or both)
+torch>=2.0.0
+# tensorflow>=2.13.0  # Alternative to PyTorch
+
+# Optional but recommended
+tqdm>=4.65.0  # Progress bars
+matplotlib>=3.7.0  # Visualization
+
+# For downloading Lichess data (optional)
+requests>=2.31.0  # HTTP requests for downloads
+
