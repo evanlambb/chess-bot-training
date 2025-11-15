@@ -1,6 +1,14 @@
 """
 Chess Dataset Generator for Engine Training
 Generates training data using Stockfish self-play with optional separate labeling budget.
+
+SCALING RECOMMENDATIONS:
+- For basic learning: 10,000+ games
+- For decent performance: 50,000+ games  
+- For strong play: 100,000+ games
+- opening_moves=10-12 provides good position diversity
+- stochastic_play=True prevents games from converging to same lines
+- Use parallel_workers > 1 on cloud/multi-core systems for faster generation
 """
 
 import chess
@@ -36,7 +44,12 @@ class DatasetConfig:
     num_games: int = 1000  # Number of games to generate
     max_moves: int = 100  # Maximum moves per game (200 plies)
     opening_variety: bool = True  # Use random opening book for variety
-    opening_moves: int = 4  # Number of random opening moves
+    opening_moves: int = 10  # Number of random opening moves (8-12 recommended for diversity)
+    
+    # Stochastic play for diversity (prevents converging to same lines)
+    stochastic_play: bool = True  # Enable probabilistic move selection
+    stochastic_temperature: float = 0.2  # Temperature for move selection (0=greedy, higher=more random)
+    stochastic_rate: float = 0.15  # Probability of using stochastic selection (vs best move)
     
     # Dataset settings
     output_dir: str = "chess_dataset"
@@ -168,19 +181,78 @@ def generate_single_game(
         
         # Play game
         while not board.is_game_over() and move_count < config.max_moves:
-            # Generate move (play budget)
-            if config.play_time_ms:
-                play_result = engine.play(
-                    board,
-                    chess.engine.Limit(time=config.play_time_ms / 1000.0)
-                )
-            else:
-                play_result = engine.play(
-                    board,
-                    chess.engine.Limit(depth=config.play_depth)
-                )
+            # Decide whether to use stochastic selection
+            use_stochastic = config.stochastic_play and np.random.random() < config.stochastic_rate
             
-            best_move = play_result.move
+            if use_stochastic:
+                # Get multiple move options with scores for stochastic selection
+                if config.play_time_ms:
+                    analysis = engine.analyse(
+                        board,
+                        chess.engine.Limit(time=config.play_time_ms / 1000.0),
+                        multipv=5  # Get top 5 moves
+                    )
+                else:
+                    analysis = engine.analyse(
+                        board,
+                        chess.engine.Limit(depth=config.play_depth),
+                        multipv=5  # Get top 5 moves
+                    )
+                
+                # Extract moves and scores
+                moves = []
+                scores = []
+                for info in analysis:
+                    if 'pv' in info and len(info['pv']) > 0:
+                        moves.append(info['pv'][0])
+                        score = info.get('score')
+                        if score:
+                            cp = score.white().score(mate_score=10000)
+                            if board.turn == chess.BLACK:
+                                cp = -cp
+                            scores.append(cp)
+                        else:
+                            scores.append(0)
+                
+                # Apply temperature-based selection
+                if len(moves) > 0:
+                    # Convert scores to probabilities using softmax with temperature
+                    scores_array = np.array(scores, dtype=np.float32)
+                    # Higher scores should have higher probability
+                    if config.stochastic_temperature > 0:
+                        # Numerically stable softmax: subtract max before exp
+                        scaled_scores = scores_array / (100 * config.stochastic_temperature)
+                        scaled_scores = scaled_scores - scaled_scores.max()  # Prevent overflow
+                        probs = np.exp(scaled_scores)
+                        probs_sum = probs.sum()
+                        if probs_sum > 0:  # Check for valid probabilities
+                            probs = probs / probs_sum
+                            best_move = np.random.choice(moves, p=probs)
+                        else:
+                            best_move = moves[0]  # Fallback if all probabilities are 0
+                    else:
+                        best_move = moves[0]  # Fallback to best move
+                else:
+                    # Fallback if analysis fails
+                    play_result = engine.play(
+                        board,
+                        chess.engine.Limit(depth=config.play_depth)
+                    )
+                    best_move = play_result.move
+            else:
+                # Use best move (original behavior)
+                if config.play_time_ms:
+                    play_result = engine.play(
+                        board,
+                        chess.engine.Limit(time=config.play_time_ms / 1000.0)
+                    )
+                else:
+                    play_result = engine.play(
+                        board,
+                        chess.engine.Limit(depth=config.play_depth)
+                    )
+                
+                best_move = play_result.move
             
             # Label position (potentially with deeper search)
             if config.label_time_ms:
@@ -367,18 +439,32 @@ def save_dataset(samples: List[Dict], output_dir: Path, name: str) -> None:
 def main():
     """Example usage"""
     config = DatasetConfig(
+        # Stockfish configuration
         stockfish_path="stockfish",  # Update this path!
         threads=1,
         hash_mb=256,
+        
+        # Search depth
         play_depth=10,
         label_depth=12,
-        num_games=100,  # Start small for testing
-        max_moves=100,
+        
+        # Game generation - SCALE THESE UP for production!
+        num_games=100,  # Start small for testing. Use 10,000+ for real training
+        max_moves=100,  # Sufficient for most games
+        
+        # Diversity settings - CRITICAL for generalization
         opening_variety=True,
-        opening_moves=4,
+        opening_moves=10,  # 10-12 recommended (increases position diversity exponentially)
+        stochastic_play=True,  # Prevents converging to same game lines
+        stochastic_temperature=0.2,  # Controls randomness (0.1-0.3 works well)
+        stochastic_rate=0.15,  # 15% of moves use stochastic selection
+        
+        # Output
         output_dir="chess_dataset",
         save_every=25,
-        parallel_workers=1,  # Increase for cloud compute
+        
+        # Parallelization
+        parallel_workers=1,  # Use 4-8+ on cloud/multi-core systems
     )
     
     generate_dataset_parallel(config)
