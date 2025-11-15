@@ -1,0 +1,151 @@
+═══════════════════════════════════════════════════════════════════
+MODAL TRAINING QUICK START - CHESS BOT
+═══════════════════════════════════════════════════════════════════
+
+📤 STEP 1: Upload Dataset to Modal
+───────────────────────────────────────────────────────────────────
+cd dataset_generator/chess_dataset
+modal volume put chess-datasets dataset_merged_6.3k.npz chess_dataset/dataset_merged_6.3k.npz
+
+✓ Uploads your 594K position dataset to Modal's cloud storage
+
+
+🚀 STEP 2: Start Training
+───────────────────────────────────────────────────────────────────
+# Recommended: Run detached (keeps running if you disconnect)
+modal run train_modal.py --detach
+
+# Or standard (terminal must stay open)
+modal run train_modal.py
+
+
+⏱️ WAIT: ~2-3 hours
+───────────────────────────────────────────────────────────────────
+Monitor at: https://modal.com/apps
+  → Click "chess-model-training"
+  → View live logs and GPU metrics
+
+Expected cost: ~$2.75 on A10G GPU
+
+
+📥 STEP 3: Download Trained Model
+───────────────────────────────────────────────────────────────────
+modal volume get chess-datasets chess_model/chess_model_best.pt dataset_generator/
+
+# Optional: Download metrics
+modal volume get chess-datasets chess_model/training_history.json .
+
+
+🔧 STEP 4: Update Your Bot
+───────────────────────────────────────────────────────────────────
+Edit src/main.py line 156:
+
+MODEL_PATH = Path(__file__).parent.parent / "dataset_generator" / "chess_model_best.pt"
+
+Edit src/main.py line 159 to match training config:
+
+model = SimpleChessNet(num_filters=256, num_res_blocks=10)
+
+
+✅ DONE! Test your bot
+
+
+═══════════════════════════════════════════════════════════════════
+CONFIGURATION OPTIONS
+═══════════════════════════════════════════════════════════════════
+
+🏃 Fast Training (~1 hour, ~$1):
+───────────────────────────────────────────────────────────────────
+modal run train_modal.py --detach \
+  --epochs 10 \
+  --num-filters 128 \
+  --num-res-blocks 5 \
+  --batch-size 512
+
+
+⚖️ Balanced Training (~2-3 hours, ~$3) [RECOMMENDED]:
+───────────────────────────────────────────────────────────────────
+modal run train_modal.py --detach \
+  --epochs 30 \
+  --num-filters 256 \
+  --num-res-blocks 10
+
+
+🎯 Full Training (~4-5 hours, ~$5):
+───────────────────────────────────────────────────────────────────
+modal run train_modal.py --detach \
+  --epochs 50 \
+  --num-filters 256 \
+  --num-res-blocks 15
+
+
+═══════════════════════════════════════════════════════════════════
+TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════════
+
+❌ "Dataset not found in volume"
+→ modal volume ls chess-datasets
+→ Re-upload: modal volume put chess-datasets <local-path> <volume-path>
+
+❌ "Out of memory"
+→ Reduce batch size: --batch-size 128
+→ Or reduce model: --num-filters 128 --num-res-blocks 5
+
+❌ "Training too slow"
+→ Increase batch: --batch-size 512
+→ Or fewer epochs: --epochs 20
+
+❌ "Out of Modal credits"
+→ Add payment: https://modal.com/settings/billing
+→ Free tier: $30/month
+
+
+═══════════════════════════════════════════════════════════════════
+USEFUL COMMANDS
+═══════════════════════════════════════════════════════════════════
+
+# Check what's in your volume:
+modal volume ls chess-datasets
+
+# List all files in a directory:
+modal volume ls chess-datasets/chess_model
+
+# Download everything:
+modal volume get chess-datasets chess_model/ ./chess_model/
+
+# Check Modal apps running:
+modal app list
+
+# View logs for a specific run:
+modal app logs chess-model-training
+
+
+═══════════════════════════════════════════════════════════════════
+EXPECTED RESULTS
+═══════════════════════════════════════════════════════════════════
+
+After 30 epochs with 594K positions:
+  ✓ Policy Accuracy: 45-55% (on legal moves)
+  ✓ Value Loss: 0.05-0.15
+  ✓ Training Time: 2-3 hours
+  ✓ Cost: ~$2.75
+
+Your bot will be able to:
+  ✓ Play legal moves consistently
+  ✓ Avoid obvious blunders
+  ✓ Understand material balance
+  ✓ Basic tactical awareness
+  ✗ May miss deep tactics (needs more data)
+
+
+═══════════════════════════════════════════════════════════════════
+MORE HELP
+═══════════════════════════════════════════════════════════════════
+
+Detailed guide: See MODAL_TRAINING_GUIDE.md
+Modal docs: https://modal.com/docs
+Modal dashboard: https://modal.com/apps
+
+
+═══════════════════════════════════════════════════════════════════
+

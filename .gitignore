@@ -1,7 +1,42 @@
-__pycache__
-.venv
-venv
-.env.local
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment variables
 .env
-devtools
-dataset_generator/chess_dataset
+.env.local
+.env.*.local
+
+# Development tools
+devtools/
+node_modules/
+
+# Dataset files (keep small test datasets only)
+dataset_generator/chess_dataset/
+dataset_generator/chess_dataset_*/
+dataset_generator/*_dataset_*/
+*.npz
+!dataset_generator/**/dataset_final.npz  # Keep final datasets under 50MB
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
